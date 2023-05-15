@@ -31,18 +31,20 @@ type InfoModel struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func (m *InfoModel) ToEntity() (e *entity.Info, err error) {
-	err = copier.Copy(&e, m)
+func (m *InfoModel) ToEntity() (*entity.Info, error) {
+	var info entity.Info
+	err := copier.Copy(&info, m)
 	if err != nil {
 		return nil, err
 	}
-	return
+	return &info, nil
 }
 
-func (o *InfosModel) ToEntities() (e *entity.Infos, err error) {
-	err = copier.Copy(&e, o)
+func (o *InfosModel) ToEntities() (*entity.Infos, error) {
+	var infos entity.Infos
+	err := copier.Copy(&infos, o)
 	if err != nil {
 		return nil, err
 	}
-	return
+	return &infos, nil
 }
