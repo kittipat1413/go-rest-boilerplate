@@ -1,0 +1,18 @@
+FROM golang:1.20-alpine AS builder
+WORKDIR /src
+
+COPY . ./
+
+RUN go mod download -x all
+RUN go build -o /app/api ./api
+
+# ---
+
+FROM alpine:edge
+WORKDIR /app
+RUN apk add --no-cache ca-certificates tzdata
+COPY --from=builder /src/api/data/migrations /app/data/migrations
+COPY --from=builder /app/api /app
+
+EXPOSE 4000
+CMD ["/app/api", "serve"]

@@ -1,0 +1,37 @@
+version: "3"
+services:
+  api:
+    build:
+      dockerfile: ./docker/Dockerfile-api
+      context: ../
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: "postgres://myuser:mypass@127.0.0.1:5432/go-rest-boilerplate?sslmode=disable"
+      API_PREFIX: "http://localhost:4000"
+      BACKOFFICE_API_KEY: 9hKDFAvGBZs1EY0YvyBJMh_NW4dOiuxjjZik7j5rno2ECPnGl1V2d1LUyn8YNy3l6dE
+      BACKOFFICE_API_SECRET: 78QcuEz9gA3iFbQVA28Wd6N9m2MWUwKFSnKnJkcKXSzlL6dJKtGPQLg9bsxJLJE9Dlo
+      ENVIRONMENT: "local"
+      ALWAYS_YES: 1
+    command: sh -c "/app/api migrate && /app/api serve"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    volumes:
+      - ./create-multiple-databases.sh:/docker-entrypoint-initdb.d/create-multiple-databases.sh
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: go-rest-boilerplate
+      POSTGRES_PASSWORD: mypass
+      POSTGRES_USER: myuser
+    image: postgres:14-alpine
+    ports:
+    - mode: ingress
+      target: 5432
+      published: 5432
+      protocol: tcp
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d postgres -U myuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
