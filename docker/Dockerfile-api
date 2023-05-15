@@ -4,14 +4,14 @@ WORKDIR /src
 COPY . ./
 
 RUN go mod download -x all
-RUN go build -o /app/api ./api
+RUN go build -o /app/api .
 
 # ---
 
 FROM alpine:edge
 WORKDIR /app
 RUN apk add --no-cache ca-certificates tzdata
-COPY --from=builder /src/api/data/migrations /app/data/migrations
+COPY --from=builder /src/data/migrations /app/data/migrations
 COPY --from=builder /app/api /app
 
 EXPOSE 4000
