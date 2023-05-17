@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	infoRepo "go-rest-boilerplate/domain/repository/info"
 	infoRepoMocks "go-rest-boilerplate/domain/repository/info/mocks"
 
+	"go-rest-boilerplate/domain/domainerror"
 	"go-rest-boilerplate/domain/entity"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -40,7 +42,7 @@ func TestFindAllInfo(t *testing.T) {
 		error   error
 	}{
 		{
-			name: "Success",
+			name: "success",
 			mocks: mockDeps{
 				CreateInfoRepository: func(ctrl *gomock.Controller) infoRepo.InfoRepository {
 					mock := infoRepoMocks.NewMockInfoRepository(ctrl)
@@ -87,6 +89,28 @@ func TestFindAllInfo(t *testing.T) {
 			wantErr: false,
 			error:   nil,
 		},
+		{
+			name: "info repository FindAll return error",
+			mocks: mockDeps{
+				CreateInfoRepository: func(ctrl *gomock.Controller) infoRepo.InfoRepository {
+					mock := infoRepoMocks.NewMockInfoRepository(ctrl)
+					mock.EXPECT().FindAll(ctx, gomock.Any()).
+						Return(nil, errors.New("mock_error"))
+					return mock
+
+				},
+			},
+			mocksDB: func(sqlMock sqlmock.Sqlmock) {
+				sqlMock.ExpectBegin()
+				sqlMock.ExpectCommit()
+			},
+			args: args{
+				ctx: ctx,
+			},
+			want:    entity.Infos{},
+			wantErr: true,
+			error:   new(domainerror.InternalError).Wrap(errors.New("mock_error")),
+		},
 	}
 
 	for _, test := range tests {
@@ -101,10 +125,10 @@ func TestFindAllInfo(t *testing.T) {
 				return
 			}
 			if test.wantErr {
-				assert.Equal(t, err, test.error)
+				assert.Equal(t, test.error, errors.Unwrap(err))
 			} else {
 				assert.NotNil(t, got)
-				assert.Equal(t, got, test.want)
+				assert.Equal(t, test.want, got)
 			}
 		})
 	}
