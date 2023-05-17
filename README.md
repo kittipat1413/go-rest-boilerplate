@@ -1,5 +1,9 @@
 # go-rest-boilerplate
 
+## Required packages
+- mockgen: `go install github.com/golang/mock/mockgen@v1.6.0`
+- golangci-lint: https://golangci-lint.run/usage/install/#local-installation
+
 # Running backend
 
 Run docker for backend with the command: `docker compose up`
